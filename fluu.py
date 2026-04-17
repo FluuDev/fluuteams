@@ -116,19 +116,24 @@ async def help(ctx):
     msg = (
         "**Fluu's Teams Setup Guide!!**\n\n"
 
-        "**Step 1. create roles for your teams**\n"
-        "**Step 2. add teams using:**\n"
+        "**Step 1. install the mod to your server**\n"
+        "**Step 2. find the config and replace server id:**\n"
+        "`replace PUT_DISCORD_SERVER_ID_HERE with your actual server id `\n"
+        "after that, restart your server!\n\n"
+
+        "**Step 3. create roles for your teams**\n"
+        "**Step 4. add teams using:**\n"
         "`$addteam <name> @role`\n\n"
 
         "**Example:**\n"
         "`$addteam sorcerer @Sorcerer`\n"
         "`$addteam curse @Curse`\n\n"
 
-        "**Step 3. make the minecraft teams:**\n"
+        "**Step 5. make the minecraft teams:**\n"
         "- create teams in Minecraft with the SAME ID or name\n"
         "for example, if you did $addteam sorcerer, then you must create the minecraft team with the ID or name sorcerer\n\n"
 
-        "**Step 4. players verify:**\n"
+        "**Step 6. players verify:**\n"
         "- Run `/verify` in Minecraft\n"
         "- Use `$verify CODE` in Discord\n\n"
 
