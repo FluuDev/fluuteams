@@ -16,6 +16,8 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="$", intents=intents, help_command=None)
 
+# ---------------- CONFIG ----------------
+
 def load_config():
     try:
         with open(CONFIG_FILE, "r") as f:
@@ -27,10 +29,27 @@ def save_config(data):
     with open(CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
+# ---------------- LINKS (PERSISTENT) ----------------
+
+def load_links():
+    try:
+        with open(LINKS_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_links(data):
+    with open(LINKS_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+# 🔥 LOAD SAVED LINKS ON START
+uuid_to_discord = load_links()
+
 code_to_uuid = {}
-uuid_to_discord = {}
 
 CODE_EXPIRY = 300
+
+# ---------------- TEAM LOGIC ----------------
 
 def get_team(member):
     config = load_config().get(str(member.guild.id))
@@ -45,6 +64,8 @@ def get_team(member):
             return team_name
 
     return "none"
+
+# ---------------- BOT COMMANDS ----------------
 
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -106,16 +127,19 @@ async def help(ctx):
         "`$addteam curse @Curse`\n\n"
 
         "**Step 3. make the minecraft teams:**\n"
-        "- create teams in Minecraft with the SAME name\n\n"
+        "- create teams in Minecraft with the SAME ID or name\n"
+        "for example, if you did #addteam sorcerer, then you must create the minecraft team with the ID or name sorcerer\n\n"
 
         "**Step 4. players verify:**\n"
         "- Run `/verify` in Minecraft\n"
         "- Use `$verify CODE` in Discord\n\n"
 
-        "**Done! Teams sync automatically 🎉**"
+        "**you're all set! if you face any issues, join the help server: https://discord.gg/9R5fwPFaDz**"
     )
 
     await ctx.send(msg)
+
+# ---------------- API ----------------
 
 app = Flask(__name__)
 
@@ -161,6 +185,8 @@ def get_role():
 
     return jsonify({"team": team})
 
+# ---------------- BOT EVENTS ----------------
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
@@ -180,15 +206,18 @@ async def verify(ctx, code: str):
 
     uuid = data["uuid"]
 
-    # ✅ FIXED: store guild + user
     uuid_to_discord[uuid] = {
         "discord_id": ctx.author.id,
         "guild_id": ctx.guild.id
     }
 
+    save_links(uuid_to_discord)
+
     del code_to_uuid[code]
 
     await ctx.send("linked successfully")
+
+# ---------------- RUN ----------------
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
