@@ -149,7 +149,7 @@ def start_verify():
     if not uuid:
         return jsonify({"error": "missing uuid"}), 400
 
-    code = f"JUJU-{random.randint(1000,9999)}"
+    code = f"FLUU-{random.randint(1000,9999)}"
 
     code_to_uuid[code] = {
         "uuid": uuid,
