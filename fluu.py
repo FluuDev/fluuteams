@@ -9,7 +9,6 @@ import json
 
 CONFIG_FILE = "servers.json"
 
-
 intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
@@ -32,13 +31,6 @@ uuid_to_discord = {}
 
 CODE_EXPIRY = 300
 
-def get_guild_and_member(discord_id):
-    for guild in bot.guilds:
-        member = guild.get_member(discord_id)
-        if member:
-            return guild, member
-    return None, None
-
 def get_team(member):
     config = load_config().get(str(member.guild.id))
 
@@ -57,14 +49,12 @@ def get_team(member):
 @commands.has_permissions(administrator=True)
 async def addteam(ctx, team: str, role: discord.Role):
     data = load_config()
-
     guild_id = str(ctx.guild.id)
 
     if guild_id not in data:
         data[guild_id] = {}
 
     data[guild_id][team] = role.id
-
     save_config(data)
 
     await ctx.send(f"team `{team}` → {role.name} added")
@@ -110,25 +100,23 @@ async def help(ctx):
         "**Step 2. add teams using:**\n"
         "`$addteam <name> @role`\n\n"
 
-        "**here's an example:**\n"
+        "**Example:**\n"
         "`$addteam sorcerer @Sorcerer`\n"
         "`$addteam curse @Curse`\n\n"
 
         "**Step 3. make the minecraft teams:**\n"
-        "- create the teams in minecraft with the exact same name as your addteam variable\n"
-        "- for example, if you did $addteam sorcerer, your team id or name should be sorcerer\n\n"
+        "- create teams in Minecraft with the SAME name\n\n"
 
         "**Step 4. players verify:**\n"
         "- Run `/verify` in Minecraft\n"
         "- Use `$verify CODE` in Discord\n\n"
 
-        "**and your off! if you have any issues, please join the discord: https://discord.gg/WU3zYUKKvP**"
+        "**Done! Teams sync automatically 🎉**"
     )
 
     await ctx.send(msg)
 
 app = Flask(__name__)
-
 
 @app.route("/verify/start", methods=["POST"])
 def start_verify():
@@ -149,7 +137,6 @@ def start_verify():
 
     return jsonify({"code": code})
 
-
 @app.route("/role", methods=["GET"])
 def get_role():
     uuid = request.args.get("uuid")
@@ -157,10 +144,13 @@ def get_role():
     if uuid not in uuid_to_discord:
         return jsonify({"team": "none"})
 
-    discord_id = uuid_to_discord[uuid]
+    data = uuid_to_discord[uuid]
 
-    guild, member = get_guild_and_member(discord_id)
+    guild = bot.get_guild(data["guild_id"])
+    if not guild:
+        return jsonify({"team": "none"})
 
+    member = guild.get_member(data["discord_id"])
     if not member:
         return jsonify({"team": "none"})
 
@@ -170,11 +160,9 @@ def get_role():
 
     return jsonify({"team": team})
 
-
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-
 
 @bot.command()
 async def verify(ctx, code: str):
@@ -191,17 +179,20 @@ async def verify(ctx, code: str):
 
     uuid = data["uuid"]
 
-    uuid_to_discord[uuid] = ctx.author.id
+    # ✅ FIXED: store guild + user
+    uuid_to_discord[uuid] = {
+        "discord_id": ctx.author.id,
+        "guild_id": ctx.guild.id
+    }
+
     del code_to_uuid[code]
 
     await ctx.send("linked successfully")
-
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
 threading.Thread(target=run_flask, daemon=True).start()
-
 
 bot.run(os.getenv("DISCORD_TOKEN"))
