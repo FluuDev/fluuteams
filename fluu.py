@@ -128,7 +128,7 @@ async def help(ctx):
 
         "**Step 3. make the minecraft teams:**\n"
         "- create teams in Minecraft with the SAME ID or name\n"
-        "for example, if you did #addteam sorcerer, then you must create the minecraft team with the ID or name sorcerer\n\n"
+        "for example, if you did $addteam sorcerer, then you must create the minecraft team with the ID or name sorcerer\n\n"
 
         "**Step 4. players verify:**\n"
         "- Run `/verify` in Minecraft\n"
