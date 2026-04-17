@@ -8,6 +8,7 @@ import os
 import json
 
 CONFIG_FILE = "servers.json"
+LINKS_FILE = "links.json"
 
 intents = discord.Intents.default()
 intents.members = True
