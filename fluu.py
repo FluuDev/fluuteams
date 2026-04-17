@@ -29,7 +29,7 @@ def save_config(data):
     with open(CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# ---------------- LINKS (PERSISTENT) ----------------
+# ---------------- LINKS ----------------
 
 def load_links():
     try:
@@ -42,9 +42,7 @@ def save_links(data):
     with open(LINKS_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# 🔥 LOAD SAVED LINKS ON START
 uuid_to_discord = load_links()
-
 code_to_uuid = {}
 
 CODE_EXPIRY = 300
@@ -159,30 +157,38 @@ def start_verify():
     }
 
     print(f"[VERIFY START] {uuid} -> {code}")
-
     return jsonify({"code": code})
+
 
 @app.route("/role", methods=["GET"])
 def get_role():
     uuid = request.args.get("uuid")
+    guild_id = request.args.get("guild")
+
+    if not uuid or not guild_id:
+        return jsonify({"team": "none"})
 
     if uuid not in uuid_to_discord:
         return jsonify({"team": "none"})
 
     data = uuid_to_discord[uuid]
 
-    guild = bot.get_guild(data["guild_id"])
+    if guild_id not in data:
+        return jsonify({"team": "none"})
+
+    discord_id = data[guild_id]
+
+    guild = bot.get_guild(int(guild_id))
     if not guild:
         return jsonify({"team": "none"})
 
-    member = guild.get_member(data["discord_id"])
+    member = guild.get_member(discord_id)
     if not member:
         return jsonify({"team": "none"})
 
     team = get_team(member)
 
-    print(f"[ROLE CHECK] {uuid} -> {team}")
-
+    print(f"[ROLE CHECK] {uuid} -> {team} (guild {guild_id})")
     return jsonify({"team": team})
 
 # ---------------- BOT EVENTS ----------------
@@ -205,11 +211,14 @@ async def verify(ctx, code: str):
         return
 
     uuid = data["uuid"]
+    guild_id = str(ctx.guild.id)
+    discord_id = ctx.author.id
 
-    uuid_to_discord[uuid] = {
-        "discord_id": ctx.author.id,
-        "guild_id": ctx.guild.id
-    }
+    # 🔥 MULTI-SERVER SUPPORT
+    if uuid not in uuid_to_discord:
+        uuid_to_discord[uuid] = {}
+
+    uuid_to_discord[uuid][guild_id] = discord_id
 
     save_links(uuid_to_discord)
 
