@@ -101,6 +101,32 @@ async def teams(ctx):
 
     await ctx.send(msg)
 
+@bot.command()
+async def help(ctx):
+    msg = (
+        "**Fluu's Teams Setup Guide!!**\n\n"
+
+        "**Step 1. create roles for your teams**\n"
+        "**Step 2. add teams using:**\n"
+        "`$addteam <name> @role`\n\n"
+
+        "**here's an example:**\n"
+        "`$addteam sorcerer @Sorcerer`\n"
+        "`$addteam curse @Curse`\n\n"
+
+        "**Step 3. make the minecraft teams:**\n"
+        "- create the teams in minecraft with the exact same name as your addteam variable\n"
+        "- for example, if you did $addteam sorcerer, your team id or name should be sorcerer\n\n"
+
+        "**Step 4. players verify:**\n"
+        "- Run `/verify` in Minecraft\n"
+        "- Use `$verify CODE` in Discord\n\n"
+
+        "**and your off! if you have any issues, please join the discord: https://discord.gg/WU3zYUKKvP**"
+    )
+
+    await ctx.send(msg)
+
 app = Flask(__name__)
 
 
